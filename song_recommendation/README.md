@@ -4,7 +4,6 @@ Followed this tutorial with some tweaks: https://www.geeksforgeeks.org/music-rec
 
 # To Do
 * Create user prompt for input
-* Allow artist input for search as well to deal with multiple songs with the same name
 * Experiment analyzing with different properties in dataset
 * Try other analysis methods
 

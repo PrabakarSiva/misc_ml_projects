@@ -65,11 +65,13 @@ plt.show()
 song_vectorizer = CountVectorizer()
 song_vectorizer.fit(tracks['genre'])
 
-def get_similarities(song_name, data):
+def get_similarities(song_name, artist_name, data):
    
   # Getting vector for the input song.
-  text_array1 = song_vectorizer.transform(data[data['track_name']==song_name]['genre']).toarray()
-  num_array1 = data[data['track_name']==song_name].select_dtypes(include=np.number).to_numpy()
+  text_array1 = song_vectorizer.transform(data[data['track_name']==song_name][data['artist_name']==artist_name]['genre']).toarray()
+  num_array1 = data[data['track_name']==song_name][data['artist_name']==artist_name].select_dtypes(include=np.number).to_numpy()
+  print(text_array1)
+  print(num_array1)
    
   # We will store similarity for each row of the dataset.
   sim = []
@@ -87,9 +89,9 @@ def get_similarities(song_name, data):
      
   return sim
 
-def recommend_songs(song_name, data=tracks):
+def recommend_songs(song_name, artist_name, data=tracks):
   # Base case
-  if tracks[tracks['track_name'] == song_name].shape[0] == 0:
+  if tracks[tracks['track_name'] == song_name][tracks['artist_name']==artist_name].shape[0] == 0:
     print('This song is either not so popular or you\
     have entered invalid_name.\n Some songs you may like:\n')
      
@@ -97,7 +99,7 @@ def recommend_songs(song_name, data=tracks):
       print(song)
     return
    
-  data['similarity_factor'] = get_similarities(song_name, data)
+  data['similarity_factor'] = get_similarities(song_name, artist_name, data)
  
   data.sort_values(by=['similarity_factor', 'energy'],
                    ascending = [False, False],
@@ -106,4 +108,5 @@ def recommend_songs(song_name, data=tracks):
   # First song will be the input song itself as the similarity will be highest.
   print(data[['track_name', 'artist_name']][0:7])
 
-recommend_songs('in the end')
+
+recommend_songs('rain', 'breaking benjamin')
