@@ -3,7 +3,7 @@ Similarity analysis done through cosine similarity
 Followed this tutorial with some tweaks: https://www.geeksforgeeks.org/music-recommendation-system-using-machine-learning/#
 
 # To Do
-* Create user prompt for input
+* Regex for user input and some cleanup
 * Experiment analyzing with different properties in dataset
 * Try other analysis methods
 

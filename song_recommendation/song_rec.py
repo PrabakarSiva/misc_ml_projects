@@ -10,68 +10,81 @@ from sklearn.manifold import TSNE
 import warnings
 warnings.filterwarnings('ignore')
 
-tracks = pd.read_csv('tcc_ceds_music.csv')
-print("Printing first 5 rows of dataframe...")
-print(tracks.head())
+def user_prompt():
+  song_name = input("Please enter song name: ")
+  artist_name = input("Please enter artist name: ")
+  show_analysis = input("Show graph analysis? (Y or N): ").lower().strip() == 'y'
 
-# Data Cleaning
-print("\nPrinting dimensions of dataframe...")
-print(tracks.shape)
+  return song_name, artist_name, show_analysis
 
-print("\nPrinting general information about the dataset...")
-print(tracks.info())
-
-print("\nChecking for any null values in columns of dataset...")
-print(tracks.isnull().sum())
+def prepare_data(input_data, show_analysis):
 
 
-#print("\nDeleting rows with null column values...")
-#tracks.dropna(inplace = True)
-#print(tracks.isnull().sum())
+  if (show_analysis):
+    print("Printing first 5 rows of dataframe...")
+    print(input_data.head())
 
-# Removing columns that are irrelevant for recommender system
-tracks = tracks.drop(['Unnamed: 0', 'lyrics', 'len', 'dating', 'violence', 'world/life', 'night/time', 
-'shake the audience', 'family/gospel', 'romantic', 'communication', 'obscene', 'music', 'movement/places',
-'light/visual perceptions', 'family/spiritual', 'like/girls', 'sadness', 'feelings', 'topic', 'age'], axis = 1)
-print ("\nRemoving unncessary columns...")
-print(tracks.head())
+    # Diagnostics for data preparation
+    print("\nPrinting dimensions of dataframe...")
+    print(input_data.shape)
 
-# Exploratory Data Analysis
-numerical_columns = tracks.drop(['artist_name', 'genre', 'track_name', 'release_date'], axis = 1)
-model = TSNE(n_components = 2, random_state = 0)
-tsne_data = model.fit_transform(numerical_columns.head(500))
-plt.figure(figsize = (7,7))
-plt.scatter(tsne_data[:,0], tsne_data[:,1])
-plt.show()
+    print("\nPrinting general information about the dataset...")
+    print(input_data.info())
 
-# To check for non unique songs (different versions of same song)
-#tracks['track_name'].nunique()
-#print(tracks.shape) ==> (x, (y, z)) if there are non unique songs
+    print("\nChecking for any null values in columns of dataset...")
+    print(input_data.isnull().sum())
 
-# Visualizing number of songs released per year
-plt.figure(figsize =  (10, 5))
-sb.histplot(data=tracks, x ='release_date')
-plt.show()
+  #print("\nDeleting rows with null column values...")
+  #input_data.dropna(inplace = True)
+  #print(input_data.isnull().sum())
 
-# Insights for numerical columns
-plt.subplots(figsize = (15, 5))
-for i, col in enumerate(numerical_columns):
-    plt.subplot(2, 5, i + 1)
-    sb.distplot(tracks[col])
-plt.tight_layout()
-plt.show()
+  # Removing columns that are irrelevant for recommender system
+  cleaned_data = input_data.drop(['Unnamed: 0', 'lyrics', 'len', 'dating', 'violence', 'world/life', 'night/time', 
+  'shake the audience', 'family/gospel', 'romantic', 'communication', 'obscene', 'music', 'movement/places',
+  'light/visual perceptions', 'family/spiritual', 'like/girls', 'sadness', 'feelings', 'topic', 'age'], axis = 1)
 
-# Used to get similarities through genre later
-song_vectorizer = CountVectorizer()
-song_vectorizer.fit(tracks['genre'])
+  if (show_analysis):
+    print ("\nRemoving unncessary columns...")
+    print(cleaned_data.head())
+  
+  return cleaned_data
+
+def exp_data_analysis(data):
+
+  # Exploratory Data Analysis
+  numerical_columns = data.drop(['artist_name', 'genre', 'track_name', 'release_date'], axis = 1)
+  model = TSNE(n_components = 2, random_state = 0)
+  tsne_data = model.fit_transform(numerical_columns.head(500))
+  plt.figure(figsize = (7,7))
+  plt.scatter(tsne_data[:,0], tsne_data[:,1])
+
+  # To check for non unique songs (different versions of same song)
+  #data['track_name'].nunique()
+  #print(data.shape) ==> (x, (y, z)) if there are non unique songs
+
+  # Visualizing number of songs released per year
+  plt.figure(figsize =  (10, 5))
+  sb.histplot(data=data, x ='release_date')
+
+  # Insights for numerical columns
+  plt.subplots(figsize = (15, 5))
+  for i, col in enumerate(numerical_columns):
+      plt.subplot(2, 5, i + 1)
+      sb.distplot(data[col])
+  plt.tight_layout()
+
+  plt.show()
+
+  
 
 def get_similarities(song_name, artist_name, data):
    
+  song_vectorizer = CountVectorizer()
+  song_vectorizer.fit(data['genre'])
+
   # Getting vector for the input song.
   text_array1 = song_vectorizer.transform(data[data['track_name']==song_name][data['artist_name']==artist_name]['genre']).toarray()
   num_array1 = data[data['track_name']==song_name][data['artist_name']==artist_name].select_dtypes(include=np.number).to_numpy()
-  print(text_array1)
-  print(num_array1)
    
   # We will store similarity for each row of the dataset.
   sim = []
@@ -89,7 +102,7 @@ def get_similarities(song_name, artist_name, data):
      
   return sim
 
-def recommend_songs(song_name, artist_name, data=tracks):
+def recommend_songs(song_name, artist_name, data):
   # Base case
   if tracks[tracks['track_name'] == song_name][tracks['artist_name']==artist_name].shape[0] == 0:
     print('This song is either not so popular or you\
@@ -105,8 +118,16 @@ def recommend_songs(song_name, artist_name, data=tracks):
                    ascending = [False, False],
                    inplace=True)
    
-  # First song will be the input song itself as the similarity will be highest.
   print(data[['track_name', 'artist_name']][0:7])
 
+if __name__ == '__main__':
 
-recommend_songs('rain', 'breaking benjamin')
+  tracks = pd.read_csv('tcc_ceds_music.csv')
+  song_name, artist_name, show_analysis = user_prompt()
+  cleaned_tracks = prepare_data(tracks, show_analysis)
+
+  if (show_analysis):
+    exp_data_analysis(cleaned_tracks)
+
+  print("Recommending songs similar to " + song_name + " by " + artist_name + "...")
+  recommend_songs(song_name, artist_name, cleaned_tracks)
